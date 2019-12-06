@@ -12,15 +12,9 @@ defmodule Mix.Tasks.Relx do
 
       config = Mix.Project.config()
       vsn = config[:version]
-      assigns = [vsn: vsn]
 
-      Mix.Generator.copy_template(
-        "relx.config.src",
-        "relx.config",
-        assigns,
-        force: true,
-        quiet: true
-      )
+      assigns = %{"RELEASE_VERSION" => vsn}
+      envsubst("relx.config.src", "relx.config", fn key -> Map.get(assigns, key, nil) end)
     end
 
     # TODO: How do we detect that the release is up-to-date? Is it important?
@@ -52,5 +46,31 @@ defmodule Mix.Tasks.Relx do
       "--output-dir",
       output_dir
     ]
+  end
+
+  defp envsubst(source, destination, getenv) do
+    content = File.read!(source)
+
+    # Get a list of the ${variables} that need replacing.
+    vars = Regex.scan(~R/\${(.+)}/U, content)
+
+    f = fn [p, v], c ->
+      case getenv.(v) do
+        nil ->
+          warn("#{source}: env var #{v} not found")
+          c
+
+        r ->
+          String.replace(c, p, r)
+      end
+    end
+
+    content = List.foldl(vars, content, f)
+
+    File.write!(destination, content)
+  end
+
+  defp warn(message) do
+    Mix.shell().info([:yellow, message, :reset])
   end
 end
