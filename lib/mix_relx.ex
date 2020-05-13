@@ -79,7 +79,7 @@ defmodule Mix.Tasks.Relx do
     config = Mix.Project.config()
     app_name = config[:app]
     vsn = config[:version]
-    current_rel = Path.join([output_dir, app_name, "releases", "current"])
+    current_rel = Path.join([output_dir, Atom.to_string(app_name), "releases", "current"])
     target = vsn
     _ = :file.make_symlink(current_rel, target)
   end
