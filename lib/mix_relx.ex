@@ -22,6 +22,9 @@ defmodule Mix.Tasks.Relx do
 
       # Assumes that relx is in PATH
       Mix.Tasks.Cmd.run(["relx" | relx_args(Mix.env())])
+
+      # Symlink releases/current to releases/$RELEASE_VERSION
+      symlink_current()
     end
 
     :ok
@@ -67,6 +70,21 @@ defmodule Mix.Tasks.Relx do
     content = List.foldl(vars, content, f)
 
     File.write!(destination, content)
+  end
+
+  defp symlink_current do
+    output_dir = Path.join(Mix.Project.build_path(), "rel")
+
+    config = Mix.Project.config()
+    app_name = config[:app]
+    vsn = config[:version]
+    current_rel = Path.join([output_dir, Atom.to_string(app_name), "releases", "current"])
+    info("Creating symlink #{current_rel} -> #{vsn}")
+    :ok = :file.make_symlink(vsn, current_rel)
+  end
+
+  defp info(message) do
+    Mix.shell().info([:green, message, :reset])
   end
 
   defp warn(message) do
