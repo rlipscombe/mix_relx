@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Relx do
   def run(_args) do
     Mix.Task.run("loadpaths")
 
-    if Mix.Utils.stale?(["relx.config.src"], ["relx.config"]) do
+    if File.exists?("relx.config.src") do
       Mix.shell().print_app()
 
       config = Mix.Project.config()
@@ -17,7 +17,6 @@ defmodule Mix.Tasks.Relx do
       envsubst("relx.config.src", "relx.config", fn key -> Map.get(assigns, key, nil) end)
     end
 
-    # TODO: How do we detect that the release is up-to-date? Is it important?
     if File.exists?("relx.config") do
       Mix.shell().print_app()
 
